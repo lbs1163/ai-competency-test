@@ -14,7 +14,6 @@ import {
   generateStage,
   portLabel,
   reflect,
-  toggleMirror,
   type CheckResult,
   type Direction,
   type Mirror,
@@ -78,14 +77,14 @@ export default function Home() {
     createNewStage(size, nextPairCount);
   }
 
-  function setMirror(row: number, col: number, mirror: Mirror) {
+  function cycleMirror(row: number, col: number) {
     setShowSolution(false);
     setResult(null);
     const key = cellKey(row, col);
     setUserMirrors((current) => {
       const next = { ...current };
-      const toggled = toggleMirror(current[key], mirror);
-      if (toggled) next[key] = toggled;
+      const cycled = getNextMirror(current[key]);
+      if (cycled) next[key] = cycled;
       else delete next[key];
       return next;
     });
@@ -209,11 +208,7 @@ export default function Home() {
                       <button
                         key={key}
                         aria-label={`${row + 1}행 ${col + 1}열`}
-                        onClick={() => setMirror(row, col, "/")}
-                        onContextMenu={(event) => {
-                          event.preventDefault();
-                          setMirror(row, col, "\\");
-                        }}
+                        onClick={() => cycleMirror(row, col)}
                         className="relative aspect-square border border-stone-200 bg-white transition hover:bg-emerald-50 focus:z-10 focus:outline-none focus:ring-2 focus:ring-emerald-600"
                       >
                         {pathByCell[key]?.map((path, index) => (
@@ -353,6 +348,12 @@ function buildPathMap(stage: Stage, mirrors: MirrorMap, result: CheckResult | nu
 
 function samePortLocal(a: Port, b: Port) {
   return a.side === b.side && a.index === b.index;
+}
+
+function getNextMirror(current: Mirror | undefined): Mirror | undefined {
+  if (!current) return "/";
+  if (current === "/") return "\\";
+  return undefined;
 }
 
 function range(start: number, end: number) {
