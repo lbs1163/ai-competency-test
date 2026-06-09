@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BrainCircuit, Route, Rotate3D } from "lucide-react";
+import { ArrowRight, BrainCircuit, Gamepad2, Route, Rotate3D } from "lucide-react";
 
 const games = [
   {
@@ -25,6 +25,14 @@ const games = [
     icon: Rotate3D,
     accent: "from-emerald-500/15 to-lime-500/10",
     badge: "공간지각형",
+  },
+  {
+    href: "/rock-paper-scissors",
+    title: "가위 바위 보!",
+    description: "나와 상대의 관점을 바꿔 보며 항상 내가 이기도록 손 모양을 빠르게 선택합니다.",
+    icon: Gamepad2,
+    accent: "from-teal-500/15 to-cyan-500/10",
+    badge: "판단전환형",
   },
 ];
 
