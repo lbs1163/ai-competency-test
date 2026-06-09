@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyzeStageDifficulty, checkStage, findMinimumSolution, generateStage, reflect, type Stage } from "./game";
+import { analyzeStageDifficulty, checkStage, findMinimumSolution, generateStage, reflect, type Stage } from "./mirror-game";
 
 describe("mirror reflection", () => {
   it("reflects slash mirrors", () => {
