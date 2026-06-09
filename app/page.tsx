@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BrainCircuit, Route } from "lucide-react";
+import { ArrowRight, BrainCircuit, Route, Rotate3D } from "lucide-react";
 
 const games = [
   {
@@ -18,6 +18,14 @@ const games = [
     accent: "from-sky-500/15 to-indigo-500/10",
     badge: "기억형",
   },
+  {
+    href: "/shape-rotation",
+    title: "도형 회전하기",
+    description: "제시된 글자와 도형을 회전·반전해 목표 모양을 만드는 공간지각 게임입니다.",
+    icon: Rotate3D,
+    accent: "from-emerald-500/15 to-lime-500/10",
+    badge: "공간지각형",
+  },
 ];
 
 export default function Home() {
@@ -32,7 +40,7 @@ export default function Home() {
           </p>
         </header>
 
-        <section className="grid gap-5 md:grid-cols-2">
+        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {games.map((game) => {
             const Icon = game.icon;
             return (
