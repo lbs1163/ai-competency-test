@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CheckCircle, FlipHorizontal, FlipVertical, Play, RotateCcw, RotateCw, Timer, Undo2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, FlipHorizontal, FlipVertical, Pause, Play, RotateCcw, RotateCw, Timer, Undo2 } from "lucide-react";
 import {
   MAX_ROTATION_CLICKS,
   MAX_ROTATION_STEPS,
@@ -29,6 +29,15 @@ type RoundSummary = {
   incorrect: number;
 };
 
+type SubmittedAnswer = {
+  problem: ShapeRotationProblem;
+  steps: RotationOperation[];
+  correct: boolean;
+  optimal: boolean;
+  clickCount: number;
+  minimumClicks: number;
+};
+
 const INITIAL_SEED = 20260609;
 
 const OPERATION_ICONS: Record<RotationOperation, ReactNode> = {
@@ -48,6 +57,10 @@ export default function ShapeRotationPage() {
   const [roundOptimal, setRoundOptimal] = useState(0);
   const [roundIncorrect, setRoundIncorrect] = useState(0);
   const [summaries, setSummaries] = useState<RoundSummary[]>([]);
+  const [submittedAnswers, setSubmittedAnswers] = useState<SubmittedAnswer[]>([]);
+  const [reviewIndex, setReviewIndex] = useState(0);
+  const [reviewStep, setReviewStep] = useState(0);
+  const [reviewPlaying, setReviewPlaying] = useState(false);
   const [message, setMessage] = useState("시작 버튼을 눌러 1라운드를 시작하세요.");
 
   const seconds = Math.ceil(remainingMs / 1000);
@@ -58,6 +71,8 @@ export default function ShapeRotationPage() {
   const totalSolved = summaries.reduce((sum, item) => sum + item.solved, 0) + (phase === "finished" ? 0 : roundSolved);
   const totalOptimal = summaries.reduce((sum, item) => sum + item.optimal, 0) + (phase === "finished" ? 0 : roundOptimal);
   const totalIncorrect = summaries.reduce((sum, item) => sum + item.incorrect, 0) + (phase === "finished" ? 0 : roundIncorrect);
+  const safeReviewIndex = Math.min(reviewIndex, Math.max(0, submittedAnswers.length - 1));
+  const reviewedAnswer = submittedAnswers[safeReviewIndex];
 
   const instruction = useMemo(() => {
     if (round === 1) return "1라운드: 알파벳을 목표 모양과 같게 회전·반전하세요.";
@@ -94,6 +109,22 @@ export default function ShapeRotationPage() {
     return () => window.clearInterval(ticker);
   }, [finishRound, phase]);
 
+  useEffect(() => {
+    if (!reviewPlaying || !reviewedAnswer) return;
+
+    const timer = window.setInterval(() => {
+      setReviewStep((current) => {
+        if (current >= reviewedAnswer.steps.length) {
+          setReviewPlaying(false);
+          return current;
+        }
+        return current + 1;
+      });
+    }, 700);
+
+    return () => window.clearInterval(timer);
+  }, [reviewPlaying, reviewedAnswer]);
+
   function startRound(nextRound = round) {
     setRound(nextRound);
     setPhase("playing");
@@ -103,6 +134,7 @@ export default function ShapeRotationPage() {
     setRoundSolved(0);
     setRoundOptimal(0);
     setRoundIncorrect(0);
+    setReviewPlaying(false);
     setMessage(`${nextRound}라운드가 시작되었습니다. 목표 모양을 만들어 제출하세요.`);
   }
 
@@ -122,6 +154,18 @@ export default function ShapeRotationPage() {
   function submitAnswer() {
     if (phase !== "playing") return;
     const result = checkShapeRotationAnswer(problem, steps);
+    setSubmittedAnswers((current) => [
+      ...current,
+      {
+        problem,
+        steps: [...steps],
+        correct: result.correct,
+        optimal: result.optimal,
+        clickCount: result.clickCount,
+        minimumClicks: result.minimumClicks,
+      },
+    ]);
+
     if (!result.correct) {
       setRoundIncorrect((count) => count + 1);
       setMessage(`아직 목표 모양과 다릅니다. 입력 ${result.clickCount}회 / 최소 ${result.minimumClicks}회`);
@@ -137,6 +181,10 @@ export default function ShapeRotationPage() {
 
   function restartAll() {
     setSummaries([]);
+    setSubmittedAnswers([]);
+    setReviewIndex(0);
+    setReviewStep(0);
+    setReviewPlaying(false);
     setRound(1);
     setPhase("idle");
     setProblem(generateShapeRotationProblem(1, createShapeRotationSeed()));
@@ -272,8 +320,129 @@ export default function ShapeRotationPage() {
             </div>
           </aside>
         </section>
+
+        {phase === "finished" && (
+          <ReviewPanel
+            answers={submittedAnswers}
+            reviewIndex={safeReviewIndex}
+            reviewStep={reviewStep}
+            reviewPlaying={reviewPlaying}
+            onSelectAnswer={(index) => {
+              setReviewIndex(index);
+              setReviewStep(0);
+              setReviewPlaying(false);
+            }}
+            onSetStep={(step) => setReviewStep(step)}
+            onTogglePlaying={() => setReviewPlaying((current) => !current)}
+          />
+        )}
       </div>
     </main>
+  );
+}
+
+function ReviewPanel({
+  answers,
+  reviewIndex,
+  reviewStep,
+  reviewPlaying,
+  onSelectAnswer,
+  onSetStep,
+  onTogglePlaying,
+}: {
+  answers: SubmittedAnswer[];
+  reviewIndex: number;
+  reviewStep: number;
+  reviewPlaying: boolean;
+  onSelectAnswer: (index: number) => void;
+  onSetStep: (step: number) => void;
+  onTogglePlaying: () => void;
+}) {
+  const answer = answers[reviewIndex];
+
+  if (!answer) {
+    return (
+      <section className="rounded-[28px] border border-stone-200 bg-white p-5 text-sm font-semibold text-stone-600 shadow-sm">
+        제출한 답안이 없습니다.
+      </section>
+    );
+  }
+
+  const safeStep = Math.min(reviewStep, answer.steps.length);
+  const currentSteps = answer.steps.slice(0, safeStep);
+  const currentTransform = operationsToCssTransform(currentSteps);
+  const targetTransform = operationsToCssTransform(answer.problem.answer);
+  const activeOperation = safeStep === 0 ? "시작" : ROTATION_OPERATIONS.find((item) => item.operation === answer.steps[safeStep - 1])?.label;
+  const reason = answer.correct
+    ? answer.optimal
+      ? "최종 모양이 목표와 같고 최소 횟수로 도달했습니다."
+      : "최종 모양이 목표와 같지만 더 적은 클릭으로도 해결할 수 있습니다."
+    : "제출한 모든 단계를 적용한 최종 모양이 목표 모양과 다릅니다.";
+
+  return (
+    <section className="rounded-[28px] border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <div className="text-sm font-bold text-stone-500">제출 답안 리뷰</div>
+          <h2 className="mt-1 text-xl font-black text-stone-900">
+            {answer.correct ? "맞은 이유" : "틀린 이유"}: {reason}
+          </h2>
+        </div>
+        <select
+          value={reviewIndex}
+          onChange={(event) => onSelectAnswer(Number(event.target.value))}
+          className="h-11 rounded-2xl border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800"
+        >
+          {answers.map((item, index) => (
+            <option key={`${item.problem.id}-${index}`} value={index}>
+              {index + 1}번 제출 · {item.correct ? "정답" : "오답"} · {item.clickCount}회
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-[1fr_72px_1fr] md:items-center">
+        <ShapePanel title="답안 진행" problem={answer.problem} transform={currentTransform} hint={`${safeStep}/${answer.steps.length}단계 · ${activeOperation}`} />
+        <div className="flex justify-center text-5xl font-black text-emerald-500">→</div>
+        <ShapePanel title="목표" problem={answer.problem} transform={targetTransform} target hint={`최소 ${answer.minimumClicks}회`} />
+      </div>
+
+      <div className="mt-5 rounded-3xl border border-stone-200 bg-stone-50 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={onTogglePlaying}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-bold text-white transition hover:bg-blue-700"
+          >
+            {reviewPlaying ? <Pause size={16} /> : <Play size={16} />}
+            {reviewPlaying ? "정지" : "재생"}
+          </button>
+          <div className="text-sm font-semibold text-stone-600">
+            제출 {answer.clickCount}회 · 최소 {answer.minimumClicks}회 · {answer.correct ? "정답" : "오답"}
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
+          {Array.from({ length: answer.steps.length + 1 }, (_, index) => {
+            const operation = index === 0 ? undefined : ROTATION_OPERATIONS.find((item) => item.operation === answer.steps[index - 1]);
+            const isActive = index === safeStep;
+            return (
+              <button
+                key={index}
+                type="button"
+                onClick={() => onSetStep(index)}
+                className={`flex h-14 flex-col items-center justify-center rounded-2xl border text-xs font-bold transition ${
+                  isActive ? "border-blue-500 bg-blue-50 text-blue-700" : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
+                }`}
+              >
+                <span>{index === 0 ? "시작" : `${index}단계`}</span>
+                <span className="mt-1 text-sm">{operation?.shortLabel ?? "원본"}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }
 
