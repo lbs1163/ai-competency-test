@@ -5,7 +5,7 @@ const games = [
   {
     href: "/mirror-path",
     title: "길 만들기 게임",
-    description: "거울을 배치해 각 포트를 올바르게 연결하는 퍼즐 게임입니다.",
+    description: "울타리를 배치해 각 포트를 올바르게 연결하는 퍼즐 게임입니다.",
     icon: Route,
     accent: "from-emerald-500/15 to-teal-500/10",
     badge: "전략형",

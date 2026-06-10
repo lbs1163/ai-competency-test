@@ -121,7 +121,7 @@ export default function MirrorPathPage() {
               <h1 className="mt-1 text-2xl font-bold tracking-normal sm:text-3xl">길 만들기 게임</h1>
             </div>
             <p className="max-w-2xl text-sm leading-6 text-stone-600">
-              좌클릭은 / 거울, 우클릭은 \ 거울입니다. 같은 방향을 다시 누르면 지워집니다.
+              좌클릭은 / 울타리, 우클릭은 \ 울타리입니다. 같은 방향을 다시 누르면 지워집니다.
             </p>
           </div>
         </header>
@@ -171,14 +171,14 @@ export default function MirrorPathPage() {
               <div className="text-sm font-semibold text-stone-800">결과</div>
               <div className="mt-2 grid gap-1 text-sm text-stone-600">
                 <span>
-                  정답 거울 수: <span className="font-semibold text-stone-900">{solutionMirrorCount}개</span>
+                  정답 울타리 수: <span className="font-semibold text-stone-900">{solutionMirrorCount}개</span>
                 </span>
                 {result ? (
                   <span className={result.success ? "font-semibold text-emerald-700" : "font-semibold text-red-600"}>
                     {result.success ? "모든 경로가 연결되었습니다." : "아직 맞지 않습니다."}
                   </span>
                 ) : (
-                  <span>거울을 배치한 뒤 검사하세요.</span>
+                  <span>울타리를 배치한 뒤 검사하세요.</span>
                 )}
               </div>
               {result && (
