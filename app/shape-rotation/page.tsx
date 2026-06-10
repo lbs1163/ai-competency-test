@@ -197,9 +197,9 @@ export default function ShapeRotationPage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-6 text-stone-900 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
-        <header className="flex flex-col gap-3 border-b border-stone-300 pb-4">
+    <main className="min-h-screen px-3 py-4 text-stone-900 sm:px-6 sm:py-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 sm:gap-5">
+        <header className="flex flex-col gap-3 border-b border-stone-300 pb-3 sm:pb-4">
           <Link href="/" className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-stone-600 hover:text-stone-900">
             <ArrowLeft size={16} /> 게임 허브로 돌아가기
           </Link>
@@ -208,7 +208,7 @@ export default function ShapeRotationPage() {
               <p className="text-sm font-semibold text-emerald-700">AI 역량검사 연습</p>
               <h1 className="mt-1 text-2xl font-bold sm:text-3xl">도형 회전하기</h1>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold sm:gap-2 sm:text-sm">
               <StatusPill icon={<Timer size={16} />} label={minutesText} strong />
               <StatusPill label={`${round}라운드`} />
               <StatusPill label={`최소클릭 ${roundOptimal}개`} />
@@ -218,25 +218,25 @@ export default function ShapeRotationPage() {
           </div>
         </header>
 
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <section className="rounded-[28px] border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
-            <div className="flex items-center justify-between gap-3 text-sm text-stone-600">
+        <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-4">
+          <section className="rounded-2xl border border-stone-200 bg-white p-3 shadow-sm sm:rounded-[28px] sm:p-6">
+            <div className="flex items-center justify-between gap-2 text-xs text-stone-600 sm:gap-3 sm:text-sm">
               <span className="font-semibold text-stone-800">{instruction}</span>
-              <span className="rounded-full bg-emerald-50 px-3 py-1 font-semibold text-emerald-700">{problem.label}</span>
+              <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700 sm:px-3">{problem.label}</span>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-[1fr_72px_1fr] md:items-center">
+            <div className="mt-4 grid grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)] items-center gap-2 sm:mt-8 sm:grid-cols-[1fr_56px_1fr] sm:gap-4 md:grid-cols-[1fr_72px_1fr]">
               <ShapePanel title="전" problem={problem} hint="제시 도형" />
-              <div className="flex justify-center text-5xl font-black text-emerald-500">→</div>
+              <div className="flex justify-center text-2xl font-black text-emerald-500 sm:text-4xl md:text-5xl">→</div>
               <ShapePanel title="후" problem={problem} transform={targetTransform} target hint="목표 모양" />
             </div>
 
-            <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-center">
-              <p className="font-semibold text-stone-800">{message}</p>
-              <p className="mt-1 text-sm text-stone-500">문제의 최소 클릭 수: {problem.minimumClicks}회 · 사용 입력: {steps.length}단계</p>
+            <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-center sm:mt-6 sm:p-4">
+              <p className="text-sm font-semibold text-stone-800 sm:text-base">{message}</p>
+              <p className="mt-1 text-xs text-stone-500 sm:text-sm">문제의 최소 클릭 수: {problem.minimumClicks}회 · 사용 입력: {steps.length}단계</p>
             </div>
 
-            <div className="mt-4 grid gap-2 text-sm font-semibold text-stone-700 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-3 gap-2 text-sm font-semibold text-stone-700 sm:mt-4">
               <StatTile label="최소 횟수 해결" value={`${totalOptimal}개`} />
               <StatTile label="정답" value={`${totalSolved}개`} />
               <StatTile label="오답" value={`${totalIncorrect}개`} />
@@ -246,21 +246,21 @@ export default function ShapeRotationPage() {
               type="button"
               onClick={submitAnswer}
               disabled={phase !== "playing" || steps.length === 0}
-              className="mx-auto mt-6 flex h-12 min-w-48 items-center justify-center rounded-2xl bg-blue-600 px-8 text-sm font-bold text-white shadow-sm transition enabled:hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mx-auto mt-4 flex h-11 w-full items-center justify-center rounded-2xl bg-blue-600 px-8 text-sm font-bold text-white shadow-sm transition enabled:hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-6 sm:h-12 sm:w-auto sm:min-w-48"
             >
               답안 제출
             </button>
           </section>
 
-          <aside className="flex flex-col gap-4 rounded-[28px] border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="grid grid-cols-2 gap-3">
+          <aside className="flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-3 shadow-sm sm:rounded-[28px] sm:gap-4 sm:p-5">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-2 sm:gap-3">
               {ROTATION_OPERATIONS.map((item) => (
                 <button
                   key={item.operation}
                   type="button"
                   onClick={() => appendStep(item.operation)}
                   disabled={inputDisabled}
-                  className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3 text-center text-sm font-bold text-emerald-700 transition enabled:hover:border-emerald-400 enabled:hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-2 text-center text-[11px] font-bold leading-tight text-emerald-700 transition enabled:hover:border-emerald-400 enabled:hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-45 sm:min-h-24 sm:gap-2 sm:p-3 sm:text-sm [&_svg]:h-5 [&_svg]:w-5 sm:[&_svg]:h-7 sm:[&_svg]:w-7"
                 >
                   {OPERATION_ICONS[item.operation]}
                   {item.label}
@@ -268,26 +268,26 @@ export default function ShapeRotationPage() {
               ))}
             </div>
 
-            <div className="rounded-3xl border border-stone-200 bg-stone-50 p-4">
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3 sm:rounded-3xl sm:p-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-bold text-stone-800">입력 단계</div>
-                <div className="rounded-2xl bg-white px-3 py-2 text-center text-xs font-semibold text-stone-600 shadow-sm">
+                <div className="rounded-2xl bg-white px-3 py-1.5 text-center text-xs font-semibold text-stone-600 shadow-sm sm:py-2">
                   남은 클릭 횟수
-                  <strong className="block text-2xl text-stone-900">{clickRemaining}</strong>
+                  <strong className="block text-xl text-stone-900 sm:text-2xl">{clickRemaining}</strong>
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-4 gap-3">
+              <div className="mt-3 grid grid-cols-8 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-3">
                 {Array.from({ length: MAX_ROTATION_STEPS }, (_, index) => {
                   const operation = steps[index];
                   const meta = ROTATION_OPERATIONS.find((item) => item.operation === operation);
                   return (
-                    <div key={index} className="flex aspect-square items-center justify-center rounded-2xl bg-white text-2xl font-black text-stone-200 shadow-sm">
-                      {meta ? <span className="text-lg text-emerald-600">{meta.shortLabel}</span> : index + 1}
+                    <div key={index} className="flex aspect-square items-center justify-center rounded-xl bg-white text-sm font-black text-stone-200 shadow-sm sm:rounded-2xl sm:text-2xl">
+                      {meta ? <span className="text-[11px] text-emerald-600 sm:text-lg">{meta.shortLabel}</span> : index + 1}
                     </div>
                   );
                 })}
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4">
                 <ControlButton icon={<Undo2 size={16} />} label="하나 지움" onClick={removeLastStep} disabled={steps.length === 0} />
                 <ControlButton icon={<RotateCcw size={16} />} label="전체 초기화" onClick={resetSteps} disabled={steps.length === 0} />
               </div>
@@ -299,7 +299,7 @@ export default function ShapeRotationPage() {
               <ControlButton icon={<RotateCcw size={16} />} label="처음부터 다시" onClick={restartAll} />
             </div>
 
-            <div className="rounded-2xl border border-stone-200 p-4 text-sm text-stone-600">
+            <div className="rounded-2xl border border-stone-200 p-3 text-sm text-stone-600 sm:p-4">
               <div className="font-bold text-stone-800">라운드 결과</div>
               <div className="mt-3 grid gap-2">
                 {[1, 2].map((value) => {
@@ -380,18 +380,18 @@ function ReviewPanel({
     : "제출한 모든 단계를 적용한 최종 모양이 목표 모양과 다릅니다.";
 
   return (
-    <section className="rounded-[28px] border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
+    <section className="rounded-2xl border border-stone-200 bg-white p-3 shadow-sm sm:rounded-[28px] sm:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-sm font-bold text-stone-500">제출 답안 리뷰</div>
-          <h2 className="mt-1 text-xl font-black text-stone-900">
+          <h2 className="mt-1 text-base font-black text-stone-900 sm:text-xl">
             {answer.correct ? "맞은 이유" : "틀린 이유"}: {reason}
           </h2>
         </div>
         <select
           value={reviewIndex}
           onChange={(event) => onSelectAnswer(Number(event.target.value))}
-          className="h-11 rounded-2xl border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800"
+          className="h-10 rounded-2xl border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 sm:h-11"
         >
           {answers.map((item, index) => (
             <option key={`${item.problem.id}-${index}`} value={index}>
@@ -401,18 +401,18 @@ function ReviewPanel({
         </select>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-[1fr_72px_1fr] md:items-center">
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)] items-center gap-2 sm:mt-5 sm:grid-cols-[1fr_56px_1fr] sm:gap-4 md:grid-cols-[1fr_72px_1fr]">
         <ShapePanel title="답안 진행" problem={answer.problem} transform={currentTransform} hint={`${safeStep}/${answer.steps.length}단계 · ${activeOperation}`} />
-        <div className="flex justify-center text-5xl font-black text-emerald-500">→</div>
+        <div className="flex justify-center text-2xl font-black text-emerald-500 sm:text-4xl md:text-5xl">→</div>
         <ShapePanel title="목표" problem={answer.problem} transform={targetTransform} target hint={`최소 ${answer.minimumClicks}회`} />
       </div>
 
-      <div className="mt-5 rounded-3xl border border-stone-200 bg-stone-50 p-4">
+      <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-3 sm:mt-5 sm:rounded-3xl sm:p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
             onClick={onTogglePlaying}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-bold text-white transition hover:bg-blue-700"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-bold text-white transition hover:bg-blue-700 sm:h-11"
           >
             {reviewPlaying ? <Pause size={16} /> : <Play size={16} />}
             {reviewPlaying ? "정지" : "재생"}
@@ -422,7 +422,7 @@ function ReviewPanel({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
+        <div className="mt-3 grid grid-cols-3 gap-2 min-[420px]:grid-cols-5 sm:mt-4 sm:grid-cols-8">
           {Array.from({ length: answer.steps.length + 1 }, (_, index) => {
             const operation = index === 0 ? undefined : ROTATION_OPERATIONS.find((item) => item.operation === answer.steps[index - 1]);
             const isActive = index === safeStep;
@@ -431,7 +431,7 @@ function ReviewPanel({
                 key={index}
                 type="button"
                 onClick={() => onSetStep(index)}
-                className={`flex h-14 flex-col items-center justify-center rounded-2xl border text-xs font-bold transition ${
+                className={`flex h-12 flex-col items-center justify-center rounded-2xl border text-[11px] font-bold transition sm:h-14 sm:text-xs ${
                   isActive ? "border-blue-500 bg-blue-50 text-blue-700" : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
                 }`}
               >
@@ -448,30 +448,30 @@ function ReviewPanel({
 
 function ShapePanel({ problem, title, transform, target, hint }: { problem: ShapeRotationProblem; title: string; transform?: string; target?: boolean; hint: string }) {
   return (
-    <div className={`rounded-[28px] border ${target ? "border-emerald-100 bg-emerald-50" : "border-stone-200 bg-white"} p-5 text-center shadow-sm`}>
-      <div className="flex h-72 items-center justify-center overflow-hidden rounded-3xl bg-white">
+    <div className={`rounded-2xl border ${target ? "border-emerald-100 bg-emerald-50" : "border-stone-200 bg-white"} p-2 text-center shadow-sm sm:rounded-[28px] sm:p-5`}>
+      <div className="flex h-32 items-center justify-center overflow-hidden rounded-2xl bg-white min-[420px]:h-40 sm:h-72 sm:rounded-3xl">
         <div style={transform ? { transform } : undefined}>
           <ProblemShape problem={problem} />
         </div>
       </div>
-      <div className="mt-4 text-lg font-bold text-stone-800">{title}</div>
-      <div className="text-sm font-semibold text-stone-500">{hint}</div>
+      <div className="mt-2 text-sm font-bold text-stone-800 sm:mt-4 sm:text-lg">{title}</div>
+      <div className="text-[11px] font-semibold leading-tight text-stone-500 sm:text-sm">{hint}</div>
     </div>
   );
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-center">
-      <div className="text-xs text-stone-500">{label}</div>
-      <div className="mt-1 text-2xl font-black text-stone-900">{value}</div>
+    <div className="rounded-2xl border border-stone-200 bg-white px-2 py-2 text-center sm:px-4 sm:py-3">
+      <div className="text-[11px] leading-tight text-stone-500 sm:text-xs">{label}</div>
+      <div className="mt-1 text-lg font-black text-stone-900 sm:text-2xl">{value}</div>
     </div>
   );
 }
 
 function ProblemShape({ problem }: { problem: ShapeRotationProblem }) {
   if (problem.kind === "letter") {
-    return <div className="select-none font-sans text-[132px] font-black leading-none text-stone-950">{problem.letter}</div>;
+    return <div className="select-none font-sans text-[clamp(4.5rem,22vw,8.25rem)] font-black leading-none text-stone-950">{problem.letter}</div>;
   }
 
   return <GridShape pattern={problem.grid ?? []} />;
@@ -479,7 +479,7 @@ function ProblemShape({ problem }: { problem: ShapeRotationProblem }) {
 
 function GridShape({ pattern }: { pattern: GridPattern }) {
   return (
-    <svg viewBox="0 0 120 120" className="h-40 w-40" role="img" aria-label="격자 도형">
+    <svg viewBox="0 0 120 120" className="h-24 w-24 min-[420px]:h-32 min-[420px]:w-32 sm:h-40 sm:w-40" role="img" aria-label="격자 도형">
       <rect x="8" y="8" width="104" height="104" fill="white" stroke="#78716c" strokeWidth="2" />
       {pattern.map((row, rowIndex) =>
         row.map((filled, colIndex) => (
@@ -501,7 +501,7 @@ function GridShape({ pattern }: { pattern: GridPattern }) {
 
 function StatusPill({ icon, label, strong }: { icon?: ReactNode; label: string; strong?: boolean }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-xl px-3 py-2 ${strong ? "bg-blue-50 text-blue-700" : "bg-stone-100 text-stone-700"}`}>
+    <span className={`inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 ${strong ? "bg-blue-50 text-blue-700" : "bg-stone-100 text-stone-700"}`}>
       {icon}
       {label}
     </span>
@@ -514,7 +514,7 @@ function ControlButton({ icon, label, onClick, disabled }: { icon: ReactNode; la
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 text-sm font-semibold text-stone-800 transition enabled:hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-2xl border border-stone-300 bg-white px-3 text-xs font-semibold text-stone-800 transition enabled:hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:gap-2 sm:px-4 sm:text-sm"
     >
       {icon}
       {label}
@@ -527,7 +527,7 @@ function PrimaryButton({ icon, label, onClick }: { icon: ReactNode; label: strin
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-bold text-white transition hover:bg-emerald-700"
+      className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-bold text-white transition hover:bg-emerald-700 sm:h-12"
     >
       {icon}
       {label}
