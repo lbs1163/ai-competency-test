@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Play, RotateCcw } from "lucide-react";
 import {
   SHAPE_DEFINITIONS,
@@ -70,21 +70,24 @@ export default function ShapeMemoryPage() {
     setRemainingMs(nextConfig.durationMs + GRACE_PERIOD_MS);
   }
 
-  function startRound() {
+  function startRound(nextRound = round) {
+    const nextConfig = getRoundConfig(nextRound);
+    setRound(nextRound);
+    setSequence(generateShapeMemorySequence(nextRound, createShapeMemorySeed()));
     setPhase("playing");
     setCurrentIndex(0);
     setAnswers([]);
-    setRemainingMs(totalWindowMs);
+    setRemainingMs(nextConfig.durationMs + GRACE_PERIOD_MS);
   }
 
-  function submitResponse(response: ShapeResponse) {
+  const submitResponse = useCallback((response: ShapeResponse) => {
     if (phase !== "playing") return;
     if (isWarmup) return;
     if (answeredIndices.has(currentIndex)) return;
 
     const correct = currentItem?.expectedResponse === response;
     setAnswers((current) => [...current, { index: currentIndex, response, correct: Boolean(correct) }]);
-  }
+  }, [answeredIndices, currentIndex, currentItem?.expectedResponse, isWarmup, phase]);
 
   useEffect(() => {
     if (phase !== "playing") return;
@@ -138,11 +141,7 @@ export default function ShapeMemoryPage() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [phase, round, currentIndex, currentItem]);
-
-  function moveToRoundTwo() {
-    initializeRound(2);
-  }
+  }, [phase, round, submitResponse]);
 
   function restartAll() {
     setRoundSummaries([]);
@@ -150,8 +149,6 @@ export default function ShapeMemoryPage() {
   }
 
   const currentSummary = roundSummaries.find((item) => item.round === round);
-  const totalCorrect = roundSummaries.reduce((sum, item) => sum + item.correctAnswers, 0);
-  const totalQuestions = roundSummaries.reduce((sum, item) => sum + item.totalQuestions, 0);
 
   return (
     <main className="min-h-screen px-4 py-6 text-stone-900 sm:px-6 lg:px-8">
@@ -195,11 +192,11 @@ export default function ShapeMemoryPage() {
             </div>
 
             <div className="grid gap-2">
-              {phase === "idle" && (
-                <ActionButton icon={<Play size={16} />} label={`${round}라운드 시작`} onClick={startRound} primary />
-              )}
-              {phase === "round-complete" && (
-                <ActionButton icon={<Play size={16} />} label="2라운드로 이동" onClick={moveToRoundTwo} primary />
+              {phase !== "playing" && (
+                <>
+                  <ActionButton icon={<Play size={16} />} label="1라운드 도전" onClick={() => startRound(1)} primary={round === 1} />
+                  <ActionButton icon={<Play size={16} />} label="2라운드 도전" onClick={() => startRound(2)} primary={round === 2} />
+                </>
               )}
               <ActionButton icon={<RotateCcw size={16} />} label="처음부터 다시" onClick={restartAll} />
             </div>
@@ -237,10 +234,10 @@ export default function ShapeMemoryPage() {
 
               <div className="grid gap-3">
                 <div className="rounded-3xl bg-stone-50 p-5 text-center">
-                  <p className="text-xl font-bold text-stone-800">{phase === "playing" ? (isWarmup ? "제시되는 도형을 기억해 주세요." : "지금 도형을 판단해 주세요.") : phase === "round-complete" ? "1라운드가 끝났습니다." : phase === "finished" ? "모든 라운드가 끝났습니다." : `${round}라운드를 시작해 주세요.`}</p>
+                  <p className="text-xl font-bold text-stone-800">{phase === "playing" ? (isWarmup ? "제시되는 도형을 기억해 주세요." : "지금 도형을 판단해 주세요.") : phase === "round-complete" || phase === "finished" ? `${round}라운드가 끝났습니다.` : `${round}라운드를 시작해 주세요.`}</p>
                   <p className="mt-2 text-sm text-stone-600">
-                    {phase === "finished"
-                      ? `총 ${totalQuestions}문항 중 ${totalCorrect}개를 맞혔습니다.`
+                    {phase === "finished" || phase === "round-complete"
+                      ? `이번 라운드는 ${currentSummary?.totalQuestions ?? 0}문항 중 ${currentSummary?.correctAnswers ?? 0}개를 맞혔습니다.`
                       : isWarmup
                         ? `${config.warmupCount}개의 초기 도형을 기억하는 구간입니다.`
                         : "키보드 또는 아래 버튼으로 응답할 수 있습니다."}

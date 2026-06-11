@@ -88,10 +88,10 @@ export default function ShapeRotationPage() {
     setRemainingMs(0);
     if (round === 1) {
       setPhase("round-complete");
-      setMessage("1라운드가 종료되었습니다. 2라운드로 이동하세요.");
+      setMessage("1라운드가 종료되었습니다. 원하는 라운드를 선택하세요.");
     } else {
       setPhase("finished");
-      setMessage("모든 라운드가 종료되었습니다.");
+      setMessage("2라운드가 종료되었습니다. 원하는 라운드를 선택하세요.");
     }
   }, [round, roundIncorrect, roundOptimal, roundSolved]);
 
@@ -294,8 +294,12 @@ export default function ShapeRotationPage() {
             </div>
 
             <div className="grid gap-2">
-              {phase === "idle" && <PrimaryButton icon={<Play size={16} />} label="1라운드 시작" onClick={() => startRound(1)} />}
-              {phase === "round-complete" && <PrimaryButton icon={<Play size={16} />} label="2라운드 시작" onClick={() => startRound(2)} />}
+              {phase !== "playing" && (
+                <>
+                  <PrimaryButton icon={<Play size={16} />} label="1라운드 도전" onClick={() => startRound(1)} />
+                  <PrimaryButton icon={<Play size={16} />} label="2라운드 도전" onClick={() => startRound(2)} />
+                </>
+              )}
               <ControlButton icon={<RotateCcw size={16} />} label="처음부터 다시" onClick={restartAll} />
             </div>
 

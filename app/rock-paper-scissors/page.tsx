@@ -58,12 +58,12 @@ export default function RockPaperScissorsPage() {
 
     if (round < 3) {
       setPhase("round-complete");
-      setMessage(`${round}라운드가 종료되었습니다. 다음 라운드로 이동하세요.`);
+      setMessage(`${round}라운드가 종료되었습니다. 원하는 라운드를 선택하세요.`);
       return;
     }
 
     setPhase("finished");
-    setMessage("모든 라운드가 종료되었습니다.");
+    setMessage("3라운드가 종료되었습니다. 원하는 라운드를 선택하세요.");
   }, [round, roundCorrect, roundSolved]);
 
   useEffect(() => {
@@ -116,11 +116,6 @@ export default function RockPaperScissorsPage() {
         : `오답입니다. 정답은 ${HAND_LABEL[problem.answer]}입니다.`,
     );
     setProblem(generateRpsProblem(round, createRpsSeed()));
-  }
-
-  function moveToNextRound() {
-    const nextRound = (round + 1) as RpsRound;
-    startRound(nextRound);
   }
 
   function restartAll() {
@@ -218,8 +213,10 @@ export default function RockPaperScissorsPage() {
             </div>
 
             <div className="grid gap-2">
-              {phase === "idle" && <ActionButton icon={<Play size={16} />} label="1라운드 시작" onClick={() => startRound(1)} primary />}
-              {phase === "round-complete" && <ActionButton icon={<Play size={16} />} label={`${round + 1}라운드 시작`} onClick={moveToNextRound} primary />}
+              {phase !== "playing" &&
+                RPS_TOTAL_ROUNDS.map((value) => (
+                  <ActionButton key={value} icon={<Play size={16} />} label={`${value}라운드 도전`} onClick={() => startRound(value)} primary={round === value} />
+                ))}
               <ActionButton icon={<RotateCcw size={16} />} label="처음부터 다시" onClick={restartAll} />
             </div>
 
