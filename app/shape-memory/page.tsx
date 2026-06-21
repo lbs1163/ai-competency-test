@@ -3,14 +3,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Play, RotateCcw } from "lucide-react";
+import { ArrowLeft, List, Play, RotateCcw, X } from "lucide-react";
 import {
   SHAPE_DEFINITIONS,
+  SHAPE_MEMORY_SETS,
   createShapeMemorySeed,
   generateShapeMemorySequence,
   getRoundConfig,
+  pickShapeMemorySet,
   type ShapeId,
   type ShapeMemoryRound,
+  type ShapeMemoryShapeSet,
   type ShapeResponse,
 } from "@/lib/shape-game";
 
@@ -32,12 +35,14 @@ const GRACE_PERIOD_MS = 1000;
 
 export default function ShapeMemoryPage() {
   const [round, setRound] = useState<ShapeMemoryRound>(1);
-  const [sequence, setSequence] = useState(() => generateShapeMemorySequence(1, 20260609));
+  const [activeShapeSet, setActiveShapeSet] = useState<ShapeMemoryShapeSet>(() => pickShapeMemorySet(20260609));
+  const [sequence, setSequence] = useState(() => generateShapeMemorySequence(1, 20260609, pickShapeMemorySet(20260609)));
   const [phase, setPhase] = useState<Phase>("idle");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerLog[]>([]);
   const [roundSummaries, setRoundSummaries] = useState<RoundSummary[]>([]);
   const [remainingMs, setRemainingMs] = useState(getRoundConfig(1).durationMs + GRACE_PERIOD_MS);
+  const [showShapeCatalog, setShowShapeCatalog] = useState(false);
   const answersRef = useRef<AnswerLog[]>([]);
 
   const config = useMemo(() => getRoundConfig(round), [round]);
@@ -62,8 +67,10 @@ export default function ShapeMemoryPage() {
 
   function initializeRound(nextRound: ShapeMemoryRound) {
     const nextConfig = getRoundConfig(nextRound);
+    const nextShapeSet = pickShapeMemorySet(createShapeMemorySeed());
+    setActiveShapeSet(nextShapeSet);
     setRound(nextRound);
-    setSequence(generateShapeMemorySequence(nextRound, createShapeMemorySeed()));
+    setSequence(generateShapeMemorySequence(nextRound, createShapeMemorySeed(), nextShapeSet));
     setPhase("idle");
     setCurrentIndex(0);
     setAnswers([]);
@@ -72,8 +79,11 @@ export default function ShapeMemoryPage() {
 
   function startRound(nextRound = round) {
     const nextConfig = getRoundConfig(nextRound);
+    const shouldStartNewGame = roundSummaries.length === 0 && phase === "idle";
+    const nextShapeSet = shouldStartNewGame ? pickShapeMemorySet(createShapeMemorySeed()) : activeShapeSet;
+    if (shouldStartNewGame) setActiveShapeSet(nextShapeSet);
     setRound(nextRound);
-    setSequence(generateShapeMemorySequence(nextRound, createShapeMemorySeed()));
+    setSequence(generateShapeMemorySequence(nextRound, createShapeMemorySeed(), nextShapeSet));
     setPhase("playing");
     setCurrentIndex(0);
     setAnswers([]);
@@ -198,6 +208,7 @@ export default function ShapeMemoryPage() {
                   <ActionButton icon={<Play size={16} />} label="2라운드 도전" onClick={() => startRound(2)} primary={round === 2} />
                 </>
               )}
+              <ActionButton icon={<List size={16} />} label="도형 목록" onClick={() => setShowShapeCatalog(true)} />
               <ActionButton icon={<RotateCcw size={16} />} label="처음부터 다시" onClick={restartAll} />
             </div>
 
@@ -285,6 +296,7 @@ export default function ShapeMemoryPage() {
           </section>
         </section>
       </div>
+      {showShapeCatalog && <ShapeCatalogModal onClose={() => setShowShapeCatalog(false)} />}
     </main>
   );
 }
@@ -306,47 +318,94 @@ function ActionButton({ icon, label, onClick, primary }: { icon: ReactNode; labe
   );
 }
 
-function ShapeCard({ shape }: { shape: ShapeId }) {
+function ShapeCard({ shape, className = "h-36 w-36" }: { shape: ShapeId; className?: string }) {
   const color = "#5cc8c5";
 
   return (
-    <svg viewBox="0 0 120 120" className="h-36 w-36" aria-label={SHAPE_DEFINITIONS.find((item) => item.id === shape)?.label} role="img">
+    <svg viewBox="0 0 120 120" className={className} aria-label={SHAPE_DEFINITIONS.find((item) => item.id === shape)?.label} role="img">
       {renderShape(shape, color)}
     </svg>
+  );
+}
+
+function ShapeCatalogModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/40 px-4 py-6" role="dialog" aria-modal="true" aria-label="도형 목록">
+      <button type="button" className="absolute inset-0 cursor-default" aria-label="도형 목록 닫기" onClick={onClose} />
+      <section className="relative w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl sm:p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold text-stone-900">도형 목록</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 transition hover:bg-stone-50"
+            aria-label="닫기"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="overflow-hidden rounded-lg border border-stone-200 bg-white">
+          {SHAPE_MEMORY_SETS.map((row, rowIndex) => (
+            <div key={rowIndex} className="grid grid-cols-3 border-b border-stone-200 last:border-b-0">
+              {row.map((shape) => (
+                <div key={shape} className="flex aspect-square items-center justify-center border-r border-stone-200 last:border-r-0">
+                  <ShapeCard shape={shape} className="h-20 w-20 sm:h-24 sm:w-24" />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 
 function renderShape(shape: ShapeId, color: string) {
   switch (shape) {
     case "triangle":
-      return <polygon points="60,18 95,92 25,92" fill={color} />;
+      return <polygon points="60,10 103,97 17,97" fill={color} />;
     case "circle":
-      return <circle cx="60" cy="60" r="34" fill={color} />;
+      return <circle cx="60" cy="60" r="38" fill={color} />;
     case "square":
-      return <rect x="26" y="26" width="68" height="68" fill={color} />;
+      return <rect x="22" y="22" width="76" height="76" fill={color} />;
     case "trapezoid":
-      return <polygon points="35,25 85,25 95,95 25,95" fill={color} />;
+      return <polygon points="33,23 87,23 98,98 22,98" fill={color} />;
     case "hourglass":
-      return <path d="M28 26 H92 Q88 48 68 56 Q88 64 92 94 H28 Q32 64 52 56 Q32 48 28 26 Z" fill={color} />;
+      return <path d="M24 22 H96 C96 44 78 54 65 59 C78 64 96 76 96 98 H24 C24 76 42 64 55 59 C42 54 24 44 24 22 Z" fill={color} />;
     case "pentagon":
-      return <polygon points="60,18 98,48 82,95 38,95 22,48" fill={color} />;
+      return <polygon points="39,22 81,22 105,56 60,104 15,56" fill={color} />;
     case "diamond":
-      return <polygon points="60,16 100,60 60,104 20,60" fill={color} />;
+      return <polygon points="60,12 104,60 60,108 16,60" fill={color} />;
     case "bowtie":
-      return <path d="M24 30 C46 30 46 48 60 60 C46 72 46 90 24 90 L24 30 Z M96 30 C74 30 74 48 60 60 C74 72 74 90 96 90 L96 30 Z" fill={color} />;
+      return <path d="M18 24 C42 24 54 42 59 56 C64 42 78 24 102 24 V96 C78 96 64 78 59 64 C54 78 42 96 18 96 Z" fill={color} />;
     case "star":
       return <path d="M60 16 L71 46 L103 46 L77 64 L87 95 L60 76 L33 95 L43 64 L17 46 L49 46 Z" fill={color} />;
     case "steps":
-      return <path d="M26 86 H42 V70 H58 V54 H74 V38 H90 V86 Z" fill={color} />;
+      return <path d="M18 24 H56 V62 H18 Z M56 62 H94 V100 H56 Z" fill={color} />;
     case "twin-spike":
-      return <path d="M24 24 H50 L42 96 L24 24 Z M96 24 H70 L78 96 L96 24 Z" fill={color} />;
+      return (
+        <>
+          <polygon points="24,24 60,24 43,102" fill={color} />
+          <polygon points="60,24 96,24 77,102" fill={color} />
+        </>
+      );
     case "pyramid":
-      return <path d="M24 88 H96 V74 H84 V60 H72 V46 H60 V32 H48 V46 H36 V60 H24 V88 Z" fill={color} />;
+      return <path d="M22 98 H98 V79 H88.5 V60 H79 V41 H69.5 V22 H50.5 V41 H41 V60 H31.5 V79 H22 Z" fill={color} />;
     case "double-triangle":
-      return <path d="M60 18 L98 56 H22 L60 18 Z M60 102 L22 64 H98 L60 102 Z" fill={color} />;
+      return <path d="M60 14 L103 56 H17 Z M60 56 L103 100 H17 Z" fill={color} />;
     case "petal":
-      return <path d="M60 60 C60 36 42 18 26 18 C26 42 40 54 60 60 C40 66 26 78 26 102 C42 102 60 84 60 60 C60 84 78 102 94 102 C94 78 80 66 60 60 C80 54 94 42 94 18 C78 18 60 36 60 60 Z" fill={color} />;
+      return (
+        <g transform="rotate(60 60 60)">
+          <path d="M60 60 C42 42 35 15 47 9 C63 13 69 41 60 60 C78 42 105 35 111 47 C107 63 79 69 60 60 C78 78 85 105 73 111 C57 107 51 79 60 60 C42 78 15 85 9 73 C13 57 41 51 60 60 Z" fill={color} />
+        </g>
+      );
     case "zigzag":
-      return <path d="M18 64 L34 28 L50 64 L66 28 L82 64 L98 28 L102 40 L86 92 L70 56 L54 92 L38 56 L22 92 L18 64 Z" fill={color} />;
+      return (
+        <>
+          <polygon points="38,14 62,60 38,106 14,60" fill={color} />
+          <polygon points="60,14 84,60 60,106 36,60" fill={color} />
+          <polygon points="82,14 106,60 82,106 58,60" fill={color} />
+        </>
+      );
   }
 }

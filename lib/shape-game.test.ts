@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   evaluateShapeMemoryResponse,
+  SHAPE_MEMORY_SETS,
   generateShapeMemorySequence,
   getExpectedResponse,
   getRoundConfig,
+  pickShapeMemorySet,
   type ShapeId,
 } from "./shape-game";
 
@@ -46,5 +48,17 @@ describe("shape memory generator", () => {
     const first = generateShapeMemorySequence(2, 4321);
     const second = generateShapeMemorySequence(2, 4321);
     expect(second).toEqual(first);
+  });
+
+  it("limits generated shapes to the selected shape set", () => {
+    const shapeSet: ShapeId[] = ["diamond", "bowtie", "star"];
+    const sequence = generateShapeMemorySequence(2, 9876, shapeSet);
+    expect(sequence.every((item) => shapeSet.includes(item.shape))).toBe(true);
+  });
+
+  it("picks one of the configured five shape sets", () => {
+    const selectedSet = pickShapeMemorySet(1357);
+    expect(SHAPE_MEMORY_SETS).toContain(selectedSet);
+    expect(selectedSet).toHaveLength(3);
   });
 });

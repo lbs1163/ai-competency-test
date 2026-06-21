@@ -29,6 +29,8 @@ export type ShapeMemoryItem = {
   expectedResponse: ShapeResponse | null;
 };
 
+export type ShapeMemoryShapeSet = readonly ShapeId[];
+
 export type ShapeMemoryRoundConfig = {
   round: ShapeMemoryRound;
   warmupCount: number;
@@ -64,6 +66,14 @@ export const SHAPE_DEFINITIONS: ShapeDefinition[] = [
   { id: "double-triangle", label: "이중 삼각형" },
   { id: "petal", label: "꽃잎형" },
   { id: "zigzag", label: "지그재그" },
+];
+
+export const SHAPE_MEMORY_SETS: readonly ShapeMemoryShapeSet[] = [
+  ["triangle", "circle", "square"],
+  ["trapezoid", "hourglass", "pentagon"],
+  ["diamond", "bowtie", "star"],
+  ["steps", "twin-spike", "pyramid"],
+  ["double-triangle", "petal", "zigzag"],
 ];
 
 export const SHAPE_MEMORY_ROUNDS: Record<ShapeMemoryRound, ShapeMemoryRoundConfig> = {
@@ -113,6 +123,11 @@ export function createSeededRandom(seedInput: number) {
   };
 }
 
+export function pickShapeMemorySet(seed: number): ShapeMemoryShapeSet {
+  const random = createSeededRandom(seed);
+  return SHAPE_MEMORY_SETS[Math.floor(random() * SHAPE_MEMORY_SETS.length)];
+}
+
 export function getRoundConfig(round: ShapeMemoryRound) {
   return SHAPE_MEMORY_ROUNDS[round];
 }
@@ -144,34 +159,26 @@ export function getExpectedResponse(sequence: ShapeId[], round: ShapeMemoryRound
   return "different";
 }
 
-export function generateShapeMemorySequence(round: ShapeMemoryRound, seed: number): ShapeMemoryItem[] {
+export function generateShapeMemorySequence(
+  round: ShapeMemoryRound,
+  seed: number,
+  shapePool: ShapeMemoryShapeSet = SHAPE_DEFINITIONS.map((shape) => shape.id),
+): ShapeMemoryItem[] {
   const config = getRoundConfig(round);
   const random = createSeededRandom(seed);
-  const shapeIds = SHAPE_DEFINITIONS.map((shape) => shape.id);
+  const shapeIds = [...new Set(shapePool)];
   const sequence: ShapeId[] = [];
 
+  if (shapeIds.length === 0) {
+    throw new Error("Shape memory sequence requires at least one shape.");
+  }
+
   for (let index = 0; index < config.totalCount; index += 1) {
-    const forced = buildForcedCandidates(sequence, round, index);
-    let nextShape: ShapeId;
-
-    if (forced.length > 0 && random() < 0.45) {
-      nextShape = forced[Math.floor(random() * forced.length)];
-    } else {
-      nextShape = shapeIds[Math.floor(random() * shapeIds.length)];
-    }
-
-    sequence.push(nextShape);
+    sequence.push(shapeIds[Math.floor(random() * shapeIds.length)]);
   }
 
   return sequence.map((shape, index) => ({
     shape,
     expectedResponse: getExpectedResponse(sequence, round, index),
   }));
-}
-
-function buildForcedCandidates(sequence: ShapeId[], round: ShapeMemoryRound, index: number) {
-  const candidates: ShapeId[] = [];
-  if (index >= 2) candidates.push(sequence[index - 2]);
-  if (round === 2 && index >= 3) candidates.push(sequence[index - 3]);
-  return [...new Set(candidates.filter(Boolean))] as ShapeId[];
 }
