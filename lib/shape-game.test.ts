@@ -56,6 +56,14 @@ describe("shape memory generator", () => {
     expect(sequence.every((item) => shapeSet.includes(item.shape))).toBe(true);
   });
 
+  it("does not repeat the same shape immediately", () => {
+    const sequence = generateShapeMemorySequence(2, 2468);
+
+    for (let index = 1; index < sequence.length; index += 1) {
+      expect(sequence[index].shape).not.toBe(sequence[index - 1].shape);
+    }
+  });
+
   it("picks one of the configured five shape sets", () => {
     const selectedSet = pickShapeMemorySet(1357);
     expect(SHAPE_MEMORY_SETS).toContain(selectedSet);

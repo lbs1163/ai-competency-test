@@ -173,8 +173,14 @@ export function generateShapeMemorySequence(
     throw new Error("Shape memory sequence requires at least one shape.");
   }
 
+  if (shapeIds.length === 1 && config.totalCount > 1) {
+    throw new Error("Shape memory sequence requires at least two shapes to avoid immediate repeats.");
+  }
+
   for (let index = 0; index < config.totalCount; index += 1) {
-    sequence.push(shapeIds[Math.floor(random() * shapeIds.length)]);
+    const previousShape = sequence[index - 1];
+    const candidates = previousShape ? shapeIds.filter((shape) => shape !== previousShape) : shapeIds;
+    sequence.push(candidates[Math.floor(random() * candidates.length)]);
   }
 
   return sequence.map((shape, index) => ({
